@@ -40,16 +40,16 @@ class FakeStoreController extends Controller
                 $catalogo = $catalogos[$produto['category']] ?? null;
 
                 if ($catalogo) {
-                    Product::updateOrCreate(
+                    $product = Product::updateOrCreate(
                         ['external_id' => $produto['id']],
                         [
                             'title' => $produto['title'],
                             'price' => $produto['price'],
                             'description' => $produto['description'],
                             'image' => $produto['image'],
-                            'catalog_id' => $catalogo->id,
                         ]
                     );
+                    $product->catalogs()->syncWithoutDetaching([$catalogo->id]);
                 }
             }
 
