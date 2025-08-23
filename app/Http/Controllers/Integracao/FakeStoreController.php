@@ -9,61 +9,71 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http as FacadesHttp;
 use Laravel\Pail\ValueObjects\Origin\Http as OriginHttp;
 use Illuminate\Support\Facades\Http;
+use Log;
 
 class FakeStoreController extends Controller
 {
-    public function sync()
+    public function novo()
     {
-        //dd("iu");
-        try {
-            return Http::get("https://reqres.in/api/users?page=2");    
+       try {
+            // 1. Sincroniza categorias
+            $categoriasResponse = Http::timeout(5)->get('https://fakestoreapi.com/products/categories');
+            $categorias = $categoriasResponse->json();
+
+            $catalogos = [];
+
+            foreach ($categorias as $nome) {
+                $catalogo = Catalog::updateOrCreate(
+                    ['name' => $nome],
+                    ['name' => $nome]
+                );
+                $catalogos[$nome] = $catalogo;
+            }
 
 
-            // $categoriasResponse = Http::get('https://fakestoreapi.com/products/categories');
-            // $categorias = $categoriasResponse->json();
-
-            // foreach ($categorias as $nome) {
-            //     Catalog::updateOrCreate(
-            //         ['nome' => $nome],
-            //         ['nome' => $nome]
-            //     );
-            // }
+            // 2. Sincroniza produtos e vincula ao catálogo
+            $produtosResponse = Http::timeout(5)->get('https://fakestoreapi.com/products');
+            $produtos = $produtosResponse->json();
 
 
-            
-            //             // 2. Sincroniza produtos e vincula ao catálogo
-            // $produtosResponse = Http::timeout(5)->get('https://fakestoreapi.com/products');
-            // $produtos = $produtosResponse->json();
+            foreach ($produtos as $produto) {
+                $catalogo = $catalogos[$produto['category']] ?? null;
 
-            // foreach ($produtos as $produto) {
-            //     $catalogo = $catalogos[$produto['category']] ?? null;
+                if ($catalogo) {
+                    Product::updateOrCreate(
+                        ['external_id' => $produto['id']],
+                        [
+                            'title' => $produto['title'],
+                            'price' => $produto['price'],
+                            'description' => $produto['description'],
+                            'image' => $produto['image'],
+                            'catalog_id' => $catalogo->id,
+                        ]
+                    );
+                }
+            }
 
-            //     if ($catalogo) {
-            //         Product::updateOrCreate(
-            //             ['external_id' => $produto['id']],
-            //             [
-            //                 'title' => $produto['title'],
-            //                 'price' => $produto['price'],
-            //                 'description' => $produto['description'],
-            //                 'image' => $produto['image'],
-            //                 'catalog_id' => $catalogo->id,
-            //             ]
-            //         );
-            //     }
-            // }
-
-            // return response()->json([
-            //     'message' => 'Catálogos e produtos sincronizados com sucesso.'
-            // ], 200);
-
+            return response()->json([
+                'message' => 'Catálogos e produtos sincronizados com sucesso.'
+            ], 200);
 
         } catch (\Throwable $th) {
-            response ()->json([
-                'message' => 'Integração não autorizada'
+            Log::error('Erro na integração com Fake Store API:',[
+                'message' => $th->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Integração não autorizada',
+                'error' => $th->getMessage()    
             ], 400);
+
+            
         }
-        
+    }
 
-
+    public function teste()
+    {
+        $dados =  Http::get("https://fakestoreapi.com/products/categories");
+        return $dados->json();
     }
 }

@@ -10,7 +10,8 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-Route::get('/fake-store', [FakeStoreController::class, 'sync']);
+Route::get('/fake-store', [FakeStoreController::class, 'novo']);
+Route::get('/teste', [FakeStoreController::class, 'teste']);
 
 Route::middleware('integracao')->group(function () {
 
