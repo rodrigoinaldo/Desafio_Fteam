@@ -8,7 +8,7 @@ Essa api simula a entrada e listagem de um estoque, base de dados sendo usade de
 
 ## Como Rodar
 
-# Pré-requisitos
+### Pré-requisitos
 
 Antes de começar, você vai precisar ter instalado em sua máquina as seguintes ferramentas: [Git](), [PHP](). Além disto é bom ter um editor para trabalhar com o código como VSCode
 
