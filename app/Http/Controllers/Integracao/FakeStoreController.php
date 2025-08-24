@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Integracao;
 use App\Http\Controllers\Controller;
 use App\Models\Catalog;
 use App\Models\Product;
+use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http as FacadesHttp;
 use Laravel\Pail\ValueObjects\Origin\Http as OriginHttp;
@@ -22,12 +23,20 @@ class FakeStoreController extends Controller
 
             $catalogos = [];
 
-            foreach ($categorias as $nome) {
-                $catalogo = Catalog::updateOrCreate(
+            // foreach ($categorias as $nome) {
+            //     $catalogo = Catalog::updateOrCreate(
+            //         ['name' => $nome],
+            //         ['name' => $nome]
+            //     );
+            //     $catalogos[$nome] = $catalogo;
+            // }
+
+            foreach ($categorias as $nome){
+                DB::table('catalogs')->updateOrInsert(
                     ['name' => $nome],
                     ['name' => $nome]
                 );
-                $catalogos[$nome] = $catalogo;
+                $catalogos[$nome] = Catalog::where('name', $nome)->first();
             }
 
 
@@ -40,7 +49,18 @@ class FakeStoreController extends Controller
                 $catalogo = $catalogos[$produto['category']] ?? null;
 
                 if ($catalogo) {
-                    $product = Product::updateOrCreate(
+                    // $product = Product::updateOrCreate(
+                    //     ['external_id' => $produto['id']],
+                    //     [
+                    //         'title' => $produto['title'],
+                    //         'price' => $produto['price'],
+                    //         'description' => $produto['description'],
+                    //         'image' => $produto['image'],
+                    //     ]
+                    // );
+                    // $product->catalogs()->syncWithoutDetaching([$catalogo->id]);
+
+                    $product = DB::table('products')->updateOrInsert(
                         ['external_id' => $produto['id']],
                         [
                             'title' => $produto['title'],
@@ -49,7 +69,11 @@ class FakeStoreController extends Controller
                             'image' => $produto['image'],
                         ]
                     );
-                    $product->catalogs()->syncWithoutDetaching([$catalogo->id]);
+                    $product = Product::where('external_id', $produto['id'])->first();
+                    DB::table('catalog_product')->updateOrInsert(
+                        ['product_id' => $product->id, 'catalog_id' => $catalogo->id],
+                        ['product_id' => $product->id, 'catalog_id' => $catalogo->id]
+                    );
                 }
             }
 
