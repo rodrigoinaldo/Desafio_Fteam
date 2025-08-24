@@ -13,10 +13,10 @@ use Log;
 
 class FakeStoreController extends Controller
 {
-    public function novo()
+    public function allEstoque()
     {
        try {
-            // 1. Sincroniza categorias
+            // Sincroniza categorias
             $categoriasResponse = Http::timeout(5)->get('https://fakestoreapi.com/products/categories');
             $categorias = $categoriasResponse->json();
 
@@ -31,7 +31,7 @@ class FakeStoreController extends Controller
             }
 
 
-            // 2. Sincroniza produtos e vincula ao catálogo
+            // Sincroniza produtos e vincula ao catálogo
             $produtosResponse = Http::timeout(5)->get('https://fakestoreapi.com/products');
             $produtos = $produtosResponse->json();
 
@@ -71,9 +71,9 @@ class FakeStoreController extends Controller
         }
     }
 
-    public function teste()
-    {
-        $dados =  Http::get("https://fakestoreapi.com/products/categories");
-        return $dados->json();
-    }
+    // public function teste()
+    // {
+    //     $dados =  Http::get("https://fakestoreapi.com/products/categories");
+    //     return $dados->json();
+    // }
 }

@@ -20,9 +20,8 @@ class IntegracaoMiddleware
             return response()->json([
                 'message' => 'Integração não autorizada'
             ], 400);
-
         }
-
+        
         //pegar o inicio da execução
         $start = microtime(true);
         $response = $next($request);

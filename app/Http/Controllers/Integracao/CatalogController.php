@@ -5,6 +5,7 @@ namespace App\Http\Controllers\integracao;
 use App\Http\Controllers\Controller;
 use App\Models\Catalog;
 use App\Models\Product;
+use DB;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
@@ -46,7 +47,14 @@ class CatalogController extends Controller
 
     public function show($id)
     {
-        $produto = Product::with('catalog')->find($id);
+        $produto = DB::select("
+            SELECT p.*, c.name as category_name
+            FROM products p
+            JOIN catalog_product cp ON p.id = cp.product_id
+            JOIN catalogs c ON cp.catalog_id = c.id
+            WHERE p.id = ?
+        ", [$id]);
+
 
         if (!$produto) {
             return response()->json(['message' => 'Produto não encontrado'], 404);
