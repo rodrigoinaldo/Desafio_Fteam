@@ -48,7 +48,7 @@ class CatalogController extends Controller
                 $query->orderBy('price', 'desc');
             }
 
-            $perPage = $request->query('per_page', 10);
+            $perPage = $request->query('per_page', 10); // itens por página
             $produtos = $query->paginate($perPage);
 
             // o md5 é para evitar que a chave fique muito grande

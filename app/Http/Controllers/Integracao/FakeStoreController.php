@@ -18,7 +18,10 @@ class FakeStoreController extends Controller
     {
        try {
             // Sincroniza categorias
-            $categoriasResponse = Http::timeout(5)->get('https://fakestoreapi.com/products/categories');
+            $categoriasResponse = retry(3, function() {
+                return Http::timeout(5)->get('https://fakestoreapi.com/products/categories');
+            }, 100);
+
             $categorias = $categoriasResponse->json();
 
             $catalogos = [];
@@ -41,25 +44,17 @@ class FakeStoreController extends Controller
 
 
             // Sincroniza produtos e vincula ao catálogo
-            $produtosResponse = Http::timeout(5)->get('https://fakestoreapi.com/products');
+            // tendo problema de timeout, coloquei retry
+            $produtosResponse = retry(3, function() {
+                return Http::timeout(5)->get('https://fakestoreapi.com/products');
+            }, 100);
+            
             $produtos = $produtosResponse->json();
-
 
             foreach ($produtos as $produto) {
                 $catalogo = $catalogos[$produto['category']] ?? null;
 
                 if ($catalogo) {
-                    // $product = Product::updateOrCreate(
-                    //     ['external_id' => $produto['id']],
-                    //     [
-                    //         'title' => $produto['title'],
-                    //         'price' => $produto['price'],
-                    //         'description' => $produto['description'],
-                    //         'image' => $produto['image'],
-                    //     ]
-                    // );
-                    // $product->catalogs()->syncWithoutDetaching([$catalogo->id]);
-
                     $product = DB::table('products')->updateOrInsert(
                         ['external_id' => $produto['id']],
                         [
